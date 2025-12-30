@@ -18,13 +18,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # We added Pillow (PIL) and openpyxl here:
+          # I have explicitly added Pillow and openpyxl here.
+          # DO NOT REMOVE THEM.
           pip install pyinstaller pywebview Pillow openpyxl pandas requests opencv-python pynput uiautomation
       
       - name: Build with PyInstaller
         working-directory: baap-emp-productivity-tracker
         run: |
-          pyinstaller --name "ProductivityTracker" --windowed --onefile --clean --noconfirm main.py
+          # The --hidden-import=PIL flag forces PyInstaller to find the library
+          pyinstaller --name "ProductivityTracker" --windowed --onefile --clean --noconfirm --hidden-import=PIL --hidden-import=openpyxl main.py
       
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
