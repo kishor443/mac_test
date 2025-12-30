@@ -42,8 +42,16 @@ except Exception:
 
 def get_app_data_dir():
     """Return the writable app data directory for the current user."""
-    appdata = os.getenv("APPDATA")  # e.g. C:\Users\<user>\AppData\Roaming
-    app_dir = os.path.join(appdata, APP_NAME)
+    if sys.platform == "win32":
+        appdata = os.getenv("APPDATA")  # e.g. C:\Users\<user>\AppData\Roaming
+        app_dir = os.path.join(appdata, APP_NAME)
+    else:
+        # macOS and Linux: use ~/Library/Application Support or ~/.config
+        home = os.path.expanduser("~")
+        if sys.platform == "darwin":
+            app_dir = os.path.join(home, "Library", "Application Support", APP_NAME)
+        else:
+            app_dir = os.path.join(home, ".config", APP_NAME)
 
     # Create the main folder and subfolders if needed
     os.makedirs(app_dir, exist_ok=True)
