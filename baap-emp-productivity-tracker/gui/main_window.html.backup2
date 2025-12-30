@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baap Company - Productivity Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background: #F5F7FA;
+            overflow-x: hidden;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Left Sidebar */
+        .sidebar {
+            width: 260px;
+            background: white;
+            color: #1F2937;
+            padding: 32px 0; /* little more space from top */
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            left: 0;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            border-right: 1px solid #E5E7EB;
+        }
+        
+        .sidebar.hidden {
+            left: -260px;
+        }
+        
+        .sidebar-logo {
+            padding: 0 24px 32px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+        }
+        
+        .nav-item {
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6B7280;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #9CA3AF;
+        }
+        
+        .nav-item.active {
+            background: #2563EB;
+            color: white;
+            border-radius: 8px;
+            margin: 0 12px;
+            font-weight: 600;
+        }
+        
+        .nav-item.active .nav-icon {
+            color: white;
+        }
+        
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .sidebar-promo {
+            margin: 24px;
+            padding: 20px;
+            background: #2563EB;
+            border-radius: 12px;
+            font-size: 13px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-promo::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .sidebar-promo::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -10px;
+            width: 60px;
+            height: 60px;
+            background: rgba(147, 197, 253, 0.2);
+            border-radius: 50%;
+        }
+        
+        .sidebar-promo-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sidebar-promo-list {
+            list-style: none;
+            padding-left: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sidebar-promo-list li {
+            padding: 6px 0;
+            font-size: 12px;
+            opacity: 0.95;
+        }
+        
+        /* 3-Dot Menu Button */
+        .menu-dots-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            margin-right: 12px;
+        }
+        
+        .menu-dots-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .menu-dot {
+            width: 4px;
+            height: 4px;
+            background: #374151;
+            border-radius: 50%;
+        }
+        
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            margin-right: 320px;
+            padding: 0;
+            overflow-y: auto;
+            background: #F5F7FA;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.sidebar-hidden {
+            margin-left: 0;
+        }
+        
+        /* Top Header */
+        .top-header {
+            background: white;
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E5E7EB;
+            position: fixed;
+            top: 0; /* move bar slightly up */
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header-left {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .search-wrapper {
+            position: relative;
+        }
+        
+        .search-box {
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 280px;
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #93C5FD;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-box::placeholder {
+            color: #9CA3AF;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            font-size: 16px;
+            pointer-events: none;
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #F3F4F6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .notification-icon:hover {
+            background: #E5E7EB;
+        }
+        
+        .user-profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .current-time {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .user-menu-wrapper {
+            position: relative;
+        }
+        
+        .user-menu {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #3B82F6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        
+        .user-menu:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .user-status-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: #10B981;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #EFF6FF;
+            color: #2563EB;
+        }
+        
+        .clock-display {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        /* Content Area */
+        .content {
+            padding: 24px 32px;
+            margin-top: 80px; /* account for fixed header */
+        }
+        
+        /* Top row buttons (Clock In / Clock Out / Start Break) */
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+        
+        .top-left-buttons,
+        .top-right-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Welcome Banner */
+        .welcome-banner {
+            background: #1E293B;
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 24px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            min-height: 180px;
+        }
+        
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .welcome-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 24px;
+        }
+        
+        .welcome-subtitle .task-count-highlight {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Decorative art in welcome banner */
+        .welcome-art {
+            position: absolute;
+            right: 20px;
+            bottom: 0;
+            width: 200px;
+            height: 140px;
+            pointer-events: none;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            gap: 0;
+        }
+
+        .welcome-art-circle {
+            position: absolute;
+            border-radius: 999px 999px 0 0;
+            bottom: 0;
+        }
+
+        /* Blue arc - leftmost, smallest */
+        .welcome-art-circle.c1 {
+            background: #4A7FB5;
+            width: 70px;
+            height: 85px;
+            right: 140px;
+            z-index: 1;
+        }
+
+        /* Teal/cyan arc - middle */
+        .welcome-art-circle.c2 {
+            background: #6B9E9B;
+            width: 75px;
+            height: 110px;
+            right: 85px;
+            z-index: 2;
+        }
+
+        /* Light blue-green overlay on teal */
+        .welcome-art-circle.c2b {
+            background: #8FBCB8;
+            width: 55px;
+            height: 75px;
+            right: 95px;
+            z-index: 3;
+        }
+
+        /* Olive/khaki arc - rightmost, tallest */
+        .welcome-art-circle.c3 {
+            background: #A09060;
+            width: 80px;
+            height: 130px;
+            right: 20px;
+            z-index: 4;
+        }
+
+        /* Light beige overlay on olive */
+        .welcome-art-circle.c3b {
+            background: #C4B896;
+            width: 60px;
+            height: 95px;
+            right: 30px;
+            z-index: 5;
+        }
+        
+        /* Task Overview Cards */
+        .task-overview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .task-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .task-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .task-icon.blue { background: #DBEAFE; color: #2563EB; }
+        .task-icon.green { background: #D1FAE5; color: #10B981; }
+        .task-icon.yellow { background: #FEF3C7; color: #F59E0B; }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+        
+        .task-label {
+            font-size: 14px;
+            color: #6B7280;
+            margin-top: 4px;
+        }
+        
+        /* Shift / Session / Worked / Break cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr)); /* 2 cards upar, 2 cards niche */
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stats-card {
+            position: relative;
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 14px 18px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03);
+            border: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .stats-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .stats-sub {
+            font-size: 12px;
+            color: #6B7280;
+        }
+        
+        .stats-icon {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #EEF2FF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #2563EB;
+        }
+
+        .stats-title-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #DCFCE7;
+            color: #166534;
+        }
+        
+        /* Widget Grid */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .widget-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .widget-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 16px;
+        }
+        
+        /* Action Buttons */
+        .btn {
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #ffffff;
+            color: #111827;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .btn-primary {
+            background: #2563EB;
+            color: white;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #1D4ED8;
+        }
+        
+        .btn-clock-out {
+            background: #F97373;
+            color: white;
+            box-shadow: 0 8px 20px rgba(248, 113, 113, 0.35);
+        }
+        
+        .btn-clock-out:hover:not(:disabled) {
+            background: #F87171;
+        }
+        
+        .btn-success {
+            background: #10B981;
+            color: white;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        .btn-icon-circle {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .btn-icon-circle.dark {
+            border-color: rgba(156, 163, 175, 0.7);
+            background: rgba(243, 244, 246, 0.9);
+            color: #4B5563;
+        }
+        
+        /* Right Sidebar */
+        .right-sidebar {
+            width: 320px;
+            background: white;
+            padding: 16px 24px 24px;
+            position: fixed;
+            right: 0;
+            top: 80px; /* navbar (top-header) ke niche se start */
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            border-left: 1px solid #E5E7EB;
+        }
+        
+        .sidebar-widget {
+            margin-bottom: 24px;
+        }
+        
+        .sidebar-widget-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 16px;
+        }
+
+        /* Messages / Announcement header (right sidebar) */
+        .sidebar-widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .messages-count-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: #16A34A;
+            background: #DCFCE7;
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 6px;
+        }
+
+        .messages-header-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #6B7280;
+            cursor: pointer;
+        }
+
+        .messages-list {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .message-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .message-item:hover {
+            background: #F3F4F6;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: #EFF6FF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2563EB;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 2px;
+        }
+
+        .message-preview {
+            font-size: 11px;
+            color: #6B7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #9CA3AF;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Announcement list */
+        .announcement-list {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .announcement-item {
+            padding: 10px 4px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .announcement-item:last-child {
+            border-bottom: none;
+        }
+
+        .announcement-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .announcement-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .announcement-meta {
+            font-size: 11px;
+            color: #9CA3AF;
+            margin-bottom: 4px;
+        }
+
+        .announcement-text {
+            font-size: 11px;
+            color: #6B7280;
+            margin-bottom: 4px;
+        }
+
+        .announcement-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #9CA3AF;
+        }
+
+        .announcement-link {
+            color: #2563EB;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Calendar */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .calendar-nav {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #374151;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        
+        .calendar-day {
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .calendar-day.weekday {
+            font-weight: 600;
+            color: #6B7280;
+        }
+        
+        .calendar-day.date {
+            color: #374151;
+        }
+        
+        .calendar-day.date:hover {
+            background: #F3F4F6;
+        }
+        
+        .calendar-day.date.highlight {
+            background: #3B82F6;
+            color: white;
+        }
+        
+        .calendar-day.date.red {
+            background: #EF4444;
+            color: white;
+        }
+        
+        /* Schedule, Reminder, Activity Lists */
+        .list-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item-title {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+        
+        .list-item-time {
+            font-size: 12px;
+            color: #6B7280;
+        }
+        
+        /* Page container */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Shift Section */
+        .shift-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .shift-select {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: #374151;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: #F9FAFB;
+            padding: 10px 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 600;
+            font-size: 12px;
+            color: #374151;
+        }
+        
+        .table-row {
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 12px;
+            color: #374151;
+            background: white;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 20px 32px;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        .footer-left {
+            font-size: 14px;
+            color: #6B7280;
+        }
+        
+        .footer-right {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+        
+        .footer-link {
+            color: #6B7280;
+            text-decoration: none;
+        }
+        
+        .footer-link:hover {
+            color: #3B82F6;
+        }
+        
+        /* Chart Widgets */
+        .chart-widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .chart-widget-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1F2937;
+        }
+        
+        .chart-options {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #6B7280;
+            padding: 4px 8px;
+        }
+        
+        .timeframe-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        /* Donut Chart */
+        .donut-chart-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .donut-chart {
+            width: 180px;
+            height: 180px;
+        }
+        
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-left: 24px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .legend-color.blue { background: #60A5FA; }
+        .legend-color.green { background: #34D399; }
+        .legend-color.yellow { background: #FBBF24; }
+        
+        /* Line Chart */
+        .line-chart-container {
+            position: relative;
+            height: 250px;
+            margin: 20px 0;
+        }
+        
+        .line-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .chart-axis {
+            font-size: 11px;
+            fill: #6B7280;
+        }
+        
+        .chart-grid {
+            stroke: #E5E7EB;
+            stroke-width: 1;
+        }
+        
+        .chart-line {
+            fill: none;
+            stroke: #60A5FA;
+            stroke-width: 2.5;
+        }
+        
+        .chart-point {
+            fill: #60A5FA;
+            cursor: pointer;
+        }
+        
+        .chart-point.highlight {
+            fill: #3B82F6;
+            r: 6;
+        }
+        
+        .chart-tooltip {
+            position: absolute;
+            background: #1F2937;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+        
+        .chart-tooltip.show {
+            opacity: 1;
+        }
+        
+        .chart-tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .chart-tooltip-value {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        
+        /* Stacked Bar Chart */
+        .stacked-bar-chart-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .stacked-bar-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .stacked-bar {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .stacked-bar:hover {
+            opacity: 0.8;
+        }
+
+        /* Activity Snapshot tooltip */
+        .activity-tooltip {
+            position: absolute;
+            min-width: 90px;
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #111827;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -100%);
+            transition: opacity 0.15s ease;
+            z-index: 10;
+        }
+
+        .activity-tooltip::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #FFFFFF;
+            filter: drop-shadow(0 4px 4px rgba(15, 23, 42, 0.12));
+        }
+
+        .activity-tooltip-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 2px 0;
+        }
+
+        .activity-tooltip-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+        
+        /* Horizontal Bar Chart */
+        .horizontal-bar-chart-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .horizontal-bar-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .horizontal-bar {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            rx: 4;
+            ry: 4;
+        }
+        
+        .horizontal-bar:hover {
+            opacity: 0.8;
+        }
+        
+        /* Activity Snapshot Legend */
+        .activity-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #4B5563;
+        }
+        
+        .activity-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .activity-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+        }
+        
+        .activity-legend-value {
+            font-weight: 600;
+            color: #111827;
+        }
+    </style>
+</head>
+<body>
+    <!-- Safety stubs so Python JS calls never crash even if main script fails -->
+    <script>
+        // If these functions are not yet defined, define no-op versions.
+        // Later in the main script they are redefined with full behavior.
+        window.updateButtonStates = window.updateButtonStates || function () {};
+        window.updateShiftOverview = window.updateShiftOverview || function () {};
+        window.updateWorkPeriods = window.updateWorkPeriods || function () {};
+    </script>
+    <div class="dashboard-container">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Left Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-logo">Baap Company</div>
+            <div class="sidebar-nav">
+                <div class="nav-item active" onclick="switchPage('home')">
+                    <div class="nav-icon">📊</div>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('summary')">
+                    <div class="nav-icon">📈</div>
+                    <span>Summary</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('attendance')">
+                    <div class="nav-icon">[Cal]</div>
+                    <span>Calendar</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('tasks')">
+                    <div class="nav-icon">✓</div>
+                    <span>Task</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('messages')">
+                    <div class="nav-icon">💬</div>
+                    <span>Messages</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('profile')">
+                    <div class="nav-icon">👤</div>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('settings')">
+                    <div class="nav-icon">⚙️</div>
+                    <span>Setting</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('faq')">
+                    <div class="nav-icon">❓</div>
+                    <span>FAQ</span>
+                </div>
+            </div>
+            <div class="sidebar-promo">
+                <div class="sidebar-promo-title">Simplify Your Workflow</div>
+                <ul class="sidebar-promo-list">
+                    <li>• Effective Management</li>
+                    <li>• Boost Your Productivity</li>
+                    <li>• Collaborate Anywhere</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Header -->
+            <div class="top-header">
+                <div class="header-left">
+                    Baap Company
+                </div>
+                <div class="header-right">
+                    <div class="search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-box" placeholder="Search">
+                    </div>
+                    <div class="notification-icon">🔔</div>
+                    <div class="user-profile-section">
+                        <div class="user-menu-wrapper">
+                            <div class="user-menu" onclick="showUserPayload()">U</div>
+                            <div class="user-status-indicator"></div>
+                        </div>
+                        <div class="current-time" id="header-clock">--:-- --</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <!-- Home Page -->
+                <div class="page active" id="page-home">
+                    <!-- Top Row Buttons (Clock In / Clock Out / Break) -->
+                    <div class="top-row">
+                        <div class="top-left-buttons">
+                            <button class="btn btn-primary" id="btn-clock-in" onclick="clockIn()">
+                                <span>Clock In</span>
+                                <span class="btn-icon-circle">⏵</span>
+                            </button>
+                            <button class="btn btn-clock-out" id="btn-clock-out" onclick="clockOut()">
+                                <span>Clock Out</span>
+                                <span class="btn-icon-circle">⏵</span>
+                            </button>
+                        </div>
+                        <div class="top-right-buttons">
+                            <button class="btn" id="btn-start-break" onclick="startBreak()">
+                                <span>Start Break</span>
+                                <span class="btn-icon-circle dark">▶</span>
+                            </button>
+                            <button class="btn btn-success" id="btn-end-break" onclick="endBreak()">
+                                <span>End Break</span>
+                                <span class="btn-icon-circle">⏹</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Welcome Banner -->
+                    <div class="welcome-banner">
+                        <div class="welcome-content">
+                            <div class="welcome-title" id="welcome-title">Good Morning, User</div>
+                            <div class="welcome-subtitle">You have <span id="task-count" class="task-count-highlight">6</span> Task Today</div>
+                            <button class="btn" onclick="switchPage('tasks')" style="background: white; color: #1E293B; border: none; font-weight: 500; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px;">View Task <span style="font-size: 16px;">›</span></button>
+                        </div>
+                        <div class="welcome-art">
+                            <div class="welcome-art-circle c1"></div>
+                            <div class="welcome-art-circle c2"></div>
+                            <div class="welcome-art-circle c2b"></div>
+                            <div class="welcome-art-circle c3"></div>
+                            <div class="welcome-art-circle c3b"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Shift / Worked / Break Overview Cards -->
+                    <div class="stats-grid">
+                        <div class="stats-card">
+                            <div class="stats-title" id="shift-name">General Shift</div>
+                            <div class="stats-sub" id="shift-time">10:00 AM – 07:00 PM</div>
+                            <div class="stats-icon">🔒</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-title" id="session-start-value">-</div>
+                            <div class="stats-sub">Session Started At</div>
+                            <div class="stats-icon">🕒</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-title-row">
+                                <div class="stats-title" id="worked-today-value">00:00 hr</div>
+                                <span class="stats-badge" id="worked-today-badge">0%</span>
+                            </div>
+                            <div class="stats-sub">Worked Today</div>
+                            <div class="stats-icon">📋</div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-title-row">
+                                <div class="stats-title" id="break-time-value">00:00 hr</div>
+                                <span class="stats-badge" id="break-time-badge">0%</span>
+                            </div>
+                            <div class="stats-sub">Break Time</div>
+                            <div class="stats-icon">📷</div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Snapshot (ERP-backed weekly hours chart) -->
+                    <div class="widget-card" style="margin-bottom: 24px;">
+                        <div class="chart-widget-header">
+                            <div class="chart-widget-title">Activity Snapshot</div>
+                            <div class="timeframe-selector" style="border-color: #DBEAFE; background: #EFF6FF; font-size: 13px; padding: 4px 10px; gap: 6px;">
+                                <span>Daily</span>
+                            </div>
+                        </div>
+                        <div class="stacked-bar-chart-container" style="height: 220px; margin-top: 8px;">
+                            <svg class="stacked-bar-chart" id="stacked-bar-chart" viewBox="0 0 600 200">
+                                <!-- Stacked bar chart will be rendered here -->
+                            </svg>
+                            <div class="activity-tooltip" id="activity-tooltip"></div>
+                        </div>
+                        <div class="activity-legend">
+                            <div class="activity-legend-item">
+                                <span class="activity-legend-dot" style="background:#A7F3D0;"></span>
+                                <span>Active Time</span>
+                                <span class="activity-legend-value" id="legend-active">0%</span>
+                            </div>
+                            <div class="activity-legend-item">
+                                <span class="activity-legend-dot" style="background:#FECACA;"></span>
+                                <span>Inactive Time</span>
+                                <span class="activity-legend-value" id="legend-inactive">0%</span>
+                            </div>
+                            <div class="activity-legend-item">
+                                <span class="activity-legend-dot" style="background:#FDE68A;"></span>
+                                <span>Idle Time</span>
+                                <span class="activity-legend-value" id="legend-idle">0%</span>
+                            </div>
+                            <div class="activity-legend-item">
+                                <span class="activity-legend-dot" style="background:#93C5FD;"></span>
+                                <span>On Break</span>
+                                <span class="activity-legend-value" id="legend-break">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Announcements -->
+                    <div class="widget-card" style="margin-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div class="widget-title" style="margin: 0;">Announcements</div>
+                    <button class="btn btn-small" onclick="refreshNotices()">Refresh</button>
+                </div>
+                        <div id="notices-list" style="min-height: 100px;">
+                            <div style="text-align: center; color: #9CA3AF; padding: 20px;">No announcements</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance Page -->
+        <div class="page" id="page-attendance">
+                    <div class="widget-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div class="widget-title" style="margin: 0;">Attendance</div>
+                            <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-small" onclick="showSummary()">Daily Summary</button>
+                                <button class="btn btn-small" onclick="refreshAttendance()">Refresh</button>
+                    </div>
+                </div>
+                
+                        <div style="font-size: 12px; color: #6B7280; margin-bottom: 10px; font-weight: 500;">Work Periods (IST)</div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>Punch In (IST)</div>
+                        <div>Punch Out (IST)</div>
+                    </div>
+                    <div id="work-periods"></div>
+                </div>
+                
+                        <div style="font-size: 12px; color: #6B7280; margin-bottom: 10px; font-weight: 500; margin-top: 20px;">Breaks (IST)</div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>Break Start (IST)</div>
+                        <div>Break End (IST)</div>
+                    </div>
+                    <div id="breaks"></div>
+                </div>
+            </div>
+        </div>
+        
+                <!-- Other Pages -->
+                <div class="page" id="page-summary">
+                    <div class="widget-card">
+                        <div class="widget-title">Summary</div>
+                        <p style="color: #6B7280;">Summary view coming soon...</p>
+                    </div>
+                </div>
+                
+                <div class="page" id="page-tasks">
+                    <div class="widget-card">
+                        <div class="widget-title">Tasks</div>
+                        <p style="color: #6B7280;">Task management coming soon...</p>
+                    </div>
+                </div>
+                
+                <div class="page" id="page-messages">
+                    <div class="widget-card">
+                        <div class="widget-title">Messages</div>
+                        <p style="color: #6B7280;">Messages view coming soon...</p>
+                    </div>
+                </div>
+                
+                <div class="page" id="page-profile">
+                    <div class="widget-card">
+                        <div class="widget-title">Profile</div>
+                        <p style="color: #6B7280;">Profile settings coming soon...</p>
+                    </div>
+                </div>
+                
+                <div class="page" id="page-settings">
+                    <div class="widget-card">
+                        <div class="widget-title">Settings</div>
+                        <p style="color: #6B7280;">Settings coming soon...</p>
+                    </div>
+                </div>
+                
+                <div class="page" id="page-faq">
+                    <div class="widget-card">
+                        <div class="widget-title">FAQ</div>
+                        <p style="color: #6B7280;">Frequently asked questions coming soon...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Sidebar -->
+        <div class="right-sidebar">
+            <!-- Messages (replacing Calendar) -->
+            <div class="sidebar-widget">
+                <div class="sidebar-widget-header">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <div class="sidebar-widget-title">Messages</div>
+                        <span class="messages-count-badge">8</span>
+                    </div>
+                    <div class="messages-header-right">
+                        <span>View all</span>
+                        <span>↗</span>
+                    </div>
+                </div>
+                <div class="messages-list">
+                    <div class="message-item">
+                        <div class="message-avatar">O</div>
+                        <div class="message-content">
+                            <div class="message-name">Olivia Johnson</div>
+                            <div class="message-preview">I've updated the project timeline ba...</div>
+                        </div>
+                        <div class="message-time">8:47 AM</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-avatar">M</div>
+                        <div class="message-content">
+                            <div class="message-name">Mark Thompson</div>
+                            <div class="message-preview">Hey, just wanted to check in on the...</div>
+                        </div>
+                        <div class="message-time">9:15 AM</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-avatar">A</div>
+                        <div class="message-content">
+                            <div class="message-name">Ava Chen</div>
+                            <div class="message-preview">Could you help me troubleshoot the...</div>
+                        </div>
+                        <div class="message-time">10:30 AM</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Schedule -->
+            <div class="sidebar-widget">
+                <div class="sidebar-widget-title">Schedule</div>
+                <div id="schedule-list">
+                    <div class="list-item">
+                        <div class="list-item-title">Team Meeting: Project Angela</div>
+                        <div class="list-item-time">2 May, 9:00 AM</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">Client Presentation: New Product Line</div>
+                        <div class="list-item-time">2 May, 10:00 AM</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">Weekly Planning Booster: Single Meet</div>
+                        <div class="list-item-time">2 May, 4:00 PM</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reminder -->
+            <div class="sidebar-widget">
+                <div class="sidebar-widget-title">Reminder</div>
+                <div id="reminder-list">
+                    <div class="list-item">
+                        <div class="list-item-title">Prepare Presentation For Stakeholders' Meeting</div>
+                        <div class="list-item-time">5 May</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">Review Software License</div>
+                        <div class="list-item-time">13 May</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">Organize Team Building Event</div>
+                        <div class="list-item-time">15 May</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="sidebar-widget">
+                <div class="sidebar-widget-title">Recent Activity</div>
+                <div id="activity-list">
+                    <div class="list-item">
+                        <div class="list-item-title">Admin added a new user, Sofia Patel, to the system.</div>
+                        <div class="list-item-time">4:15 PM</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">Lucas Garcia updated the status of Project Phoenix to 'In Progress'</div>
+                        <div class="list-item-time">9:00 AM</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">Noah Milan uploaded 'Q1 Financial Report.xlsx'</div>
+                        <div class="list-item-time">9:00 AM</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages (kept simple here as placeholder, main messages widget is above) -->
+        </div>
+    </div>
+    
+    <script>
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (sidebar && mainContent) {
+                sidebar.classList.toggle('hidden');
+                mainContent.classList.toggle('sidebar-hidden');
+                if (overlay) {
+                    overlay.classList.toggle('show');
+                }
+            }
+        }
+
+        // --- User greeting state ---
+        let currentUserFirstName = '';
+        let currentUserLastName = '';
+
+        function getGreetingForHour(hour) {
+            if (hour >= 5 && hour < 12) return 'Good Morning';
+            if (hour >= 12 && hour < 17) return 'Good Afternoon';
+            if (hour >= 17 && hour < 21) return 'Good Evening';
+            return 'Good Night';
+        }
+
+        function updateGreetingBanner() {
+            try {
+                const titleEl = document.getElementById('welcome-title');
+                if (!titleEl) return;
+                const now = new Date();
+                const greeting = getGreetingForHour(now.getHours());
+                const fullName = (currentUserFirstName + ' ' + currentUserLastName).trim() || 'User';
+                titleEl.textContent = `${greeting}, ${fullName}`;
+            } catch (e) {
+                console.error('Error updating greeting banner:', e);
+            }
+        }
+        
+        // Page navigation
+        let currentPage = 'home';
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+            });
+            
+            const pageElement = document.getElementById(`page-${page}`);
+            if (pageElement) {
+                pageElement.classList.add('active');
+            }
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            if (event && event.target) {
+                const navItem = event.target.closest('.nav-item');
+                if (navItem) {
+                    navItem.classList.add('active');
+                }
+            }
+            
+            currentPage = page;
+            
+            if (page === 'attendance') {
+                try {
+                    pywebview.api.refresh_attendance();
+                } catch (e) {
+                    console.error('Error refreshing attendance:', e);
+                }
+            }
+        }
+        
+        // Chart Functions
+        function renderDonutChart() {
+            const svg = document.getElementById('donut-chart');
+            if (!svg) return;
+            
+            const centerX = 100;
+            const centerY = 100;
+            const radius = 70;
+            const innerRadius = 50;
+            
+            // Clear previous content
+            svg.innerHTML = '';
+            
+            // Data: 40% Upcoming, 35% In progress, 25% Completed
+            const data = [
+                { value: 40, color: '#60A5FA', label: 'Upcoming' },
+                { value: 35, color: '#34D399', label: 'In progress' },
+                { value: 25, color: '#FBBF24', label: 'Completed' }
+            ];
+            
+            let currentAngle = -90; // Start from top
+            
+            data.forEach((item, index) => {
+                const angle = (item.value / 100) * 360;
+                const startAngle = currentAngle;
+                const endAngle = currentAngle + angle;
+                
+                const startAngleRad = (startAngle * Math.PI) / 180;
+                const endAngleRad = (endAngle * Math.PI) / 180;
+                
+                const x1 = centerX + radius * Math.cos(startAngleRad);
+                const y1 = centerY + radius * Math.sin(startAngleRad);
+                const x2 = centerX + radius * Math.cos(endAngleRad);
+                const y2 = centerY + radius * Math.sin(endAngleRad);
+                
+                const x3 = centerX + innerRadius * Math.cos(endAngleRad);
+                const y3 = centerY + innerRadius * Math.sin(endAngleRad);
+                const x4 = centerX + innerRadius * Math.cos(startAngleRad);
+                const y4 = centerY + innerRadius * Math.sin(startAngleRad);
+                
+                const largeArcFlag = angle > 180 ? 1 : 0;
+                
+                const pathData = [
+                    `M ${x1} ${y1}`,
+                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                    `L ${x3} ${y3}`,
+                    `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4}`,
+                    'Z'
+                ].join(' ');
+                
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', item.color);
+                path.setAttribute('stroke', 'white');
+                path.setAttribute('stroke-width', '2');
+                svg.appendChild(path);
+                
+                currentAngle += angle;
+            });
+        }
+        
+        function renderLineChart() {
+            const svg = document.getElementById('line-chart');
+            if (!svg) return;
+            
+            // Clear previous content
+            svg.innerHTML = '';
+            
+            // Sample data for weekly task activity
+            const data = [
+                { day: 'Mon', tasks: 35 },
+                { day: 'Tue', tasks: 42 },
+                { day: 'Wed', tasks: 38 },
+                { day: 'Thu', tasks: 49 },
+                { day: 'Fri', tasks: 45 },
+                { day: 'Sat', tasks: 30 },
+                { day: 'Sun', tasks: 25 }
+            ];
+            
+            const width = 600;
+            const height = 250;
+            const padding = { top: 20, right: 40, bottom: 40, left: 50 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            const maxValue = 100;
+            const minValue = 0;
+            const valueRange = maxValue - minValue;
+            
+            // Draw grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartHeight / 4) * i;
+                const value = maxValue - (valueRange / 4) * i;
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', padding.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', width - padding.right);
+                line.setAttribute('y2', y);
+                line.setAttribute('class', 'chart-grid');
+                svg.appendChild(line);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', padding.left - 10);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('class', 'chart-axis');
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = value;
+                svg.appendChild(text);
+            }
+            
+            // Draw X-axis labels
+            const dayWidth = chartWidth / data.length;
+            data.forEach((item, index) => {
+                const x = padding.left + (index + 0.5) * dayWidth;
+                const y = height - padding.bottom + 20;
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', y);
+                text.setAttribute('class', 'chart-axis');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = item.day;
+                svg.appendChild(text);
+            });
+            
+            // Draw line
+            const pathData = data.map((item, index) => {
+                const x = padding.left + (index + 0.5) * dayWidth;
+                const y = padding.top + chartHeight - ((item.tasks - minValue) / valueRange) * chartHeight;
+                return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+            }).join(' ');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData);
+            path.setAttribute('class', 'chart-line');
+            svg.appendChild(path);
+            
+            // Draw points
+            data.forEach((item, index) => {
+                const x = padding.left + (index + 0.5) * dayWidth;
+                const y = padding.top + chartHeight - ((item.tasks - minValue) / valueRange) * chartHeight;
+                
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', 4);
+                circle.setAttribute('class', 'chart-point');
+                circle.setAttribute('data-day', item.day);
+                circle.setAttribute('data-tasks', item.tasks);
+                
+                // Add hover events
+                circle.addEventListener('mouseenter', function(e) {
+                    const tooltip = document.getElementById('chart-tooltip');
+                    const tooltipTitle = document.getElementById('tooltip-title');
+                    const tooltipValue = document.getElementById('tooltip-value');
+                    const chartContainer = document.querySelector('.line-chart-container');
+                    
+                    tooltipTitle.textContent = item.day;
+                    tooltipValue.textContent = `${item.tasks} Tasks`;
+                    
+                    const rect = chartContainer.getBoundingClientRect();
+                    tooltip.style.left = (x - 50) + 'px';
+                    tooltip.style.top = (y - 60) + 'px';
+                    tooltip.classList.add('show');
+                    
+                    // Highlight point
+                    circle.setAttribute('class', 'chart-point highlight');
+                    circle.setAttribute('r', 6);
+                });
+                
+                circle.addEventListener('mouseleave', function() {
+                    const tooltip = document.getElementById('chart-tooltip');
+                    tooltip.classList.remove('show');
+                    
+                    circle.setAttribute('class', 'chart-point');
+                    circle.setAttribute('r', 4);
+                });
+                
+                svg.appendChild(circle);
+            });
+        }
+        
+        function toggleTimeframe() {
+            const timeframeText = document.getElementById('timeframe-text');
+            const timeframes = ['Weekly', 'Monthly', 'Yearly'];
+            const currentIndex = timeframes.indexOf(timeframeText.textContent);
+            const nextIndex = (currentIndex + 1) % timeframes.length;
+            timeframeText.textContent = timeframes[nextIndex];
+            renderLineChart(); // Re-render with new timeframe
+        }
+        
+        // Calendar functions
+        function generateCalendar() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendar-month').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            let html = '';
+            
+            weekdays.forEach(day => {
+                html += `<div class="calendar-day weekday">${day}</div>`;
+            });
+            
+            for (let i = 0; i < firstDay - 1; i++) {
+                html += '<div class="calendar-day"></div>';
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                let classes = 'calendar-day date';
+                if ([2, 9, 16, 23, 30].includes(day)) {
+                    classes += ' highlight';
+                } else if ([21, 28].includes(day)) {
+                    classes += ' red';
+                }
+                html += `<div class="${classes}">${day}</div>`;
+            }
+            
+            document.getElementById('calendar-grid').innerHTML = html;
+        }
+        
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            generateCalendar();
+        }
+        
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar();
+        }
+        
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = (hours % 12 || 12).toString().padStart(2, '0');
+            
+            // Update main clock
+            const clockEl = document.getElementById('clock');
+            if (clockEl) {
+                clockEl.textContent = `${displayHours}:${minutes}:${seconds} ${ampm}`;
+            }
+            
+            // Update header clock
+            const headerClockEl = document.getElementById('header-clock');
+            if (headerClockEl) {
+                headerClockEl.textContent = `${displayHours}:${minutes} ${ampm}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        generateCalendar();
+        
+        // Render charts on page load
+        renderDonutChart();
+        renderLineChart();
+        
+        // Hours Spent Chart Function - Real Data (With Overtime)
+        function updateHoursSpentChart(data) {
+            const svg = document.getElementById('stacked-bar-chart');
+            if (!svg || !data) return;
+            
+            svg.innerHTML = '';
+            
+            const width = 600;
+            const height = 200;
+            const padding = { top: 20, right: 40, bottom: 40, left: 60 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            const days = data.days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const workHours = data.work_hours || [0, 0, 0, 0, 0, 0, 0];
+            const breakTime = data.break_time || [0, 0, 0, 0, 0, 0, 0];
+            const overtime = data.overtime || [0, 0, 0, 0, 0, 0, 0];
+
+            const tooltipEl = document.getElementById('activity-tooltip');
+            const containerEl = svg.parentElement;
+            
+            // Update legend percentages (weekly totals)
+            const totalWorkHours = data.total_work_hours || 0;
+            const totalBreakTime = data.total_break_time || 0;
+            const totalOvertime = data.total_overtime || 0;
+            const totalAll = totalWorkHours + totalBreakTime + totalOvertime;
+            if (totalAll > 0) {
+                const pctActiveNum = (totalWorkHours / totalAll) * 100;
+                const pctBreakNum = (totalBreakTime / totalAll) * 100;
+                const pctIdleNum = (totalOvertime / totalAll) * 100;
+                const pctInactiveNum = Math.max(0, 100 - (pctActiveNum + pctBreakNum + pctIdleNum));
+
+                const pctActive = pctActiveNum.toFixed(1) + '%';
+                const pctBreak = pctBreakNum.toFixed(1) + '%';
+                const pctIdle = pctIdleNum.toFixed(1) + '%';
+                const pctInactive = pctInactiveNum.toFixed(1) + '%';
+
+                const activeEl = document.getElementById('legend-active');
+                const inactiveEl = document.getElementById('legend-inactive');
+                const idleEl = document.getElementById('legend-idle');
+                const breakEl = document.getElementById('legend-break');
+                if (activeEl) activeEl.textContent = pctActive;
+                if (inactiveEl) inactiveEl.textContent = pctInactive;
+                if (idleEl) idleEl.textContent = pctIdle;
+                if (breakEl) breakEl.textContent = pctBreak;
+            }
+            
+            // Convert to TOTAL hours per day (single blue bar like design)
+            const totalPerDay = workHours.map((w, i) => (w || 0) + (breakTime[i] || 0) + (overtime[i] || 0));
+            
+            // Find max value for scaling (at least 8h for nicer look)
+            const maxValue = Math.max(...totalPerDay, 8);
+            const scale = chartHeight / maxValue;
+            
+            const barWidth = chartWidth / days.length;
+            const barSpacing = barWidth * 0.2;
+            const actualBarWidth = barWidth - barSpacing;
+            
+            // Draw Y-axis grid lines and labels (0h, 2h, 4h...)
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartHeight / 4) * i;
+                const value = maxValue - (maxValue / 4) * i;
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', padding.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', width - padding.right);
+                line.setAttribute('y2', y);
+                line.setAttribute('class', 'chart-grid');
+                svg.appendChild(line);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', padding.left - 10);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('class', 'chart-axis');
+                text.setAttribute('text-anchor', 'end');
+                text.textContent = Math.round(value) + 'h';
+                svg.appendChild(text);
+            }
+            
+            // Draw single solid bars per day (total time) – match simple UI
+            // Helper to format decimal hours -> "HH:MM hrs"
+            function formatHours(h) {
+                const totalMinutes = Math.round((h || 0) * 60);
+                const hh = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+                const mm = (totalMinutes % 60).toString().padStart(2, '0');
+                return `${hh}:${mm} hrs`;
+            }
+
+            days.forEach((day, index) => {
+                const x = padding.left + index * barWidth + barSpacing / 2;
+                const total = totalPerDay[index] || 0;
+                const barHeight = total * scale;
+                const y = padding.top + chartHeight - barHeight;
+                
+                if (barHeight > 0) {
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', x);
+                    rect.setAttribute('y', y);
+                    rect.setAttribute('width', actualBarWidth);
+                    rect.setAttribute('height', barHeight);
+                    rect.setAttribute('fill', '#93C5FD'); // light blue like design
+                    rect.setAttribute('class', 'stacked-bar');
+                    rect.setAttribute('rx', '4');
+                    rect.setAttribute('ry', '4');
+
+                    // Tooltip events
+                    if (tooltipEl && containerEl) {
+                        rect.addEventListener('mouseenter', (evt) => {
+                            const activeH = workHours[index] || 0;
+                            const breakH = breakTime[index] || 0;
+                            const idleH = overtime[index] || 0;
+                            const inactiveH = Math.max(0, total - (activeH + breakH + idleH));
+
+                            tooltipEl.innerHTML = `
+                                <div class="activity-tooltip-row">
+                                    <span class="activity-tooltip-dot" style="background:#A7F3D0;"></span>
+                                    <span>${formatHours(activeH)}</span>
+                                </div>
+                                <div class="activity-tooltip-row">
+                                    <span class="activity-tooltip-dot" style="background:#FECACA;"></span>
+                                    <span>${formatHours(inactiveH)}</span>
+                                </div>
+                                <div class="activity-tooltip-row">
+                                    <span class="activity-tooltip-dot" style="background:#FDE68A;"></span>
+                                    <span>${formatHours(idleH)}</span>
+                                </div>
+                                <div class="activity-tooltip-row">
+                                    <span class="activity-tooltip-dot" style="background:#93C5FD;"></span>
+                                    <span>${formatHours(breakH)}</span>
+                                </div>
+                            `;
+
+                            const containerRect = containerEl.getBoundingClientRect();
+                            const svgRect = svg.getBoundingClientRect();
+
+                            // Convert SVG viewBox coords to actual rendered pixels
+                            const scaleX = svgRect.width / width;
+                            const scaleY = svgRect.height / height;
+
+                            // X: exact center of this bar in pixels
+                            const barCenterX = svgRect.left + (x + actualBarWidth / 2) * scaleX;
+                            const relativeX = barCenterX - containerRect.left;
+
+                            // Y: just above the bar top in pixels
+                            const barTopY = svgRect.top + y * scaleY;
+                            const relativeY = barTopY - containerRect.top;
+
+                            tooltipEl.style.left = `${relativeX}px`;
+                            tooltipEl.style.top = `${relativeY}px`;
+                            tooltipEl.style.opacity = '1';
+                        });
+
+                        rect.addEventListener('mouseleave', () => {
+                            tooltipEl.style.opacity = '0';
+                        });
+                    }
+
+                    svg.appendChild(rect);
+                }
+                
+                // Day label
+                const dayText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                dayText.setAttribute('x', x + actualBarWidth / 2);
+                dayText.setAttribute('y', height - padding.bottom + 20);
+                dayText.setAttribute('class', 'chart-axis');
+                dayText.setAttribute('text-anchor', 'middle');
+                dayText.textContent = day;
+                svg.appendChild(dayText);
+            });
+        }
+        
+        // Load real weekly data for hours spent chart
+        function loadHoursSpentData() {
+            try {
+                if (pywebview && pywebview.api && pywebview.api.get_hours_spent_data) {
+                    const hoursData = pywebview.api.get_hours_spent_data();
+                    if (hoursData) {
+                        updateHoursSpentChart(hoursData);
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading hours spent data:', e);
+            }
+        }
+        
+        // Load chart data on initialization
+        setTimeout(loadHoursSpentData, 1000);
+        setInterval(loadHoursSpentData, 30000); // Refresh every 30 seconds
+        
+        // Task Category Chart Functions
+        function updateTaskCategoryChart(data) {
+            const svg = document.getElementById('horizontal-bar-chart');
+            if (!svg || !data) return;
+            
+            svg.innerHTML = '';
+            
+            const width = 600;
+            const height = 120;
+            const padding = { top: 10, right: 40, bottom: 30, left: 100 };
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            
+            const categories = data.categories || ['Mobile App', 'Website', 'Dashboard'];
+            const counts = data.counts || [0, 0, 0];
+            
+            // Update legend
+            document.getElementById('category-mobile').textContent = `Mobile App: ${counts[0] || 0}`;
+            document.getElementById('category-website').textContent = `Website: ${counts[1] || 0}`;
+            document.getElementById('category-dashboard').textContent = `Dashboard: ${counts[2] || 0}`;
+            
+            const maxValue = Math.max(...counts, 250);
+            const scale = chartWidth / maxValue;
+            
+            const barHeight = chartHeight / categories.length;
+            const barSpacing = barHeight * 0.3;
+            const actualBarHeight = barHeight - barSpacing;
+            
+            // Draw grid lines
+            for (let i = 0; i <= 5; i++) {
+                const x = padding.left + (chartWidth / 5) * i;
+                const value = (maxValue / 5) * i;
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x);
+                line.setAttribute('y1', padding.top);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', height - padding.bottom);
+                line.setAttribute('class', 'chart-grid');
+                svg.appendChild(line);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', height - padding.bottom + 20);
+                text.setAttribute('class', 'chart-axis');
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = value;
+                svg.appendChild(text);
+            }
+            
+            // Draw bars
+            const colors = ['#3B82F6', '#10B981', '#FBBF24'];
+            categories.forEach((category, index) => {
+                const y = padding.top + index * barHeight + barSpacing / 2;
+                const barWidth = counts[index] * scale;
+                
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', padding.left);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', barWidth);
+                rect.setAttribute('height', actualBarHeight);
+                rect.setAttribute('fill', colors[index] || '#3B82F6');
+                rect.setAttribute('class', 'horizontal-bar');
+                svg.appendChild(rect);
+                
+                // Category label
+                const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelText.setAttribute('x', padding.left - 10);
+                labelText.setAttribute('y', y + actualBarHeight / 2 + 4);
+                labelText.setAttribute('class', 'chart-axis');
+                labelText.setAttribute('text-anchor', 'end');
+                labelText.textContent = category;
+                svg.appendChild(labelText);
+            });
+        }
+        
+        // Load chart data on initialization
+        setTimeout(loadHoursSpentData, 1000);
+        setInterval(loadHoursSpentData, 30000); // Refresh every 30 seconds
+        
+        // API functions
+        function startBreak() {
+            const btn = document.getElementById('btn-start-break');
+            if (btn && !btn.disabled) {
+            pywebview.api.start_break();
+            }
+        }
+        
+        function endBreak() {
+            const btn = document.getElementById('btn-end-break');
+            if (btn && !btn.disabled) {
+            pywebview.api.end_break();
+            }
+        }
+        
+        function logout() {
+            pywebview.api.logout();
+        }
+        
+        function clockIn() {
+            const btn = document.getElementById('btn-clock-in');
+            if (btn && !btn.disabled) {
+            pywebview.api.clock_in();
+            }
+        }
+        
+        function clockOut() {
+            const btn = document.getElementById('btn-clock-out');
+            if (btn && !btn.disabled) {
+            pywebview.api.clock_out();
+            }
+        }
+        
+        function refreshShifts() {
+            pywebview.api.refresh_shifts();
+        }
+        
+        function showSummary() {
+            pywebview.api.show_summary();
+        }
+        
+        function refreshAttendance() {
+            pywebview.api.refresh_attendance();
+        }
+        
+        function refreshNotices() {
+            try {
+                pywebview.api.refresh_notices();
+            } catch (e) {
+                console.error('Error refreshing notices:', e);
+            }
+        }
+        
+        function onShiftChange() {
+            const select = document.getElementById('shift-select');
+            pywebview.api.set_shift(select.value);
+        }
+        
+        // Update UI from Python
+        window.updateStatus = function(status) {
+            const statusEl = document.getElementById('status');
+            if (statusEl) {
+                statusEl.textContent = status;
+                if (status.includes('CLOCKED IN')) {
+                    statusEl.style.background = '#D1FAE5';
+                    statusEl.style.color = '#10B981';
+                } else if (status.includes('ON BREAK')) {
+                    statusEl.style.background = '#FEF3C7';
+                    statusEl.style.color = '#F59E0B';
+                } else {
+                    statusEl.style.background = '#EFF6FF';
+                    statusEl.style.color = '#2563EB';
+                }
+            }
+        };
+        
+        window.updateBreakTime = function(time) {
+            const breakTimeEl = document.getElementById('break-time-value');
+            if (breakTimeEl && typeof time === 'string') {
+                // Expecting HH:MM:SS, convert to HH:MM hr for the card
+                const parts = time.split(':');
+                if (parts.length >= 2) {
+                    const hh = parts[0].padStart(2, '0');
+                    const mm = parts[1].padStart(2, '0');
+                    breakTimeEl.textContent = `${hh}:${mm} hr`;
+                } else {
+                    breakTimeEl.textContent = `${time} hr`;
+                }
+            }
+        };
+        
+        window.updateActiveApps = function(apps) {
+            const activeAppsEl = document.getElementById('active-apps');
+            if (activeAppsEl) {
+                activeAppsEl.textContent = `Active Apps: ${apps}`;
+            }
+        };
+        
+        window.updateIdleWarning = function(warning) {
+            const idleEl = document.getElementById('idle-warning');
+            if (idleEl) {
+                idleEl.textContent = `Idle Warning: ${warning}`;
+            }
+        };
+
+        // Update Shift / Session / Worked / Break overview cards
+        window.updateShiftOverview = function(data) {
+            if (!data || typeof data !== 'object') return;
+            try {
+                const shiftNameEl = document.getElementById('shift-name');
+                const shiftTimeEl = document.getElementById('shift-time');
+                const sessionStartEl = document.getElementById('session-start-value');
+                const workedTodayValEl = document.getElementById('worked-today-value');
+                const workedTodayBadgeEl = document.getElementById('worked-today-badge');
+                const breakTimeValEl = document.getElementById('break-time-value');
+                const breakTimeBadgeEl = document.getElementById('break-time-badge');
+
+                if (shiftNameEl) {
+                    shiftNameEl.textContent = data.shift_label || 'General Shift';
+                }
+                if (shiftTimeEl) {
+                    shiftTimeEl.textContent = data.shift_time || '';
+                }
+                if (sessionStartEl) {
+                    sessionStartEl.textContent = data.session_start || '-';
+                }
+                if (workedTodayValEl) {
+                    workedTodayValEl.textContent = data.worked_today || '00:00 hr';
+                }
+                if (workedTodayBadgeEl && data.worked_pct) {
+                    workedTodayBadgeEl.textContent = data.worked_pct;
+                }
+                if (breakTimeValEl && data.break_time_hr) {
+                    // Card-friendly "00:00 hr" text
+                    breakTimeValEl.textContent = data.break_time_hr;
+                }
+                if (breakTimeBadgeEl && data.break_pct) {
+                    breakTimeBadgeEl.textContent = data.break_pct;
+                }
+            } catch (e) {
+                console.error('Error updating shift overview:', e);
+            }
+        };
+        
+        window.updateShifts = function(shifts, selected) {
+            const select = document.getElementById('shift-select');
+            if (!select) return;
+            select.innerHTML = '';
+            if (shifts.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Loading...';
+                select.appendChild(option);
+            } else {
+                shifts.forEach(shift => {
+                    const option = document.createElement('option');
+                    option.value = shift.id;
+                    option.textContent = shift.name;
+                    if (shift.id === selected) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            }
+        };
+        
+        window.updateWorkPeriods = function(periods) {
+            const container = document.getElementById('work-periods');
+            if (!container) return;
+            container.innerHTML = '';
+            if (periods.length === 0) {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                row.innerHTML = '<div style="color: #9CA3AF;">—</div><div style="color: #9CA3AF;">—</div>';
+                container.appendChild(row);
+            } else {
+                periods.forEach(period => {
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    row.innerHTML = `<div>${period.in || '—'}</div><div>${period.out || '—'}</div>`;
+                    container.appendChild(row);
+                });
+            }
+        };
+        
+        window.updateBreaks = function(breaks) {
+            const container = document.getElementById('breaks');
+            if (!container) return;
+            container.innerHTML = '';
+            if (breaks.length === 0) {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                row.innerHTML = '<div style="color: #9CA3AF;">—</div><div style="color: #9CA3AF;">—</div>';
+                container.appendChild(row);
+            } else {
+                breaks.forEach(br => {
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    row.innerHTML = `<div>${br.start || '—'}</div><div>${br.end || '—'}</div>`;
+                    container.appendChild(row);
+                });
+            }
+        };
+        
+        window.updateNotices = function(notices) {
+            const container = document.getElementById('notices-list');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!notices || notices.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #9CA3AF; padding: 20px;">No announcements</div>';
+                return;
+            }
+            notices.forEach(n => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 12px 0; border-bottom: 1px solid #E5E7EB;';
+                const title = document.createElement('div');
+                title.style.cssText = 'font-weight: 600; color: #1F2937; margin-bottom: 4px;';
+                title.textContent = n.title || 'Announcement';
+                const msg = document.createElement('div');
+                msg.style.cssText = 'font-size: 14px; color: #4B5563; margin-bottom: 4px;';
+                msg.textContent = n.message || '';
+                const meta = document.createElement('div');
+                meta.style.cssText = 'font-size: 12px; color: #6B7280;';
+                meta.textContent = n.valid_till ? `Valid till: ${n.valid_till}` : (n.status ? `Status: ${n.status}` : '');
+                item.appendChild(title);
+                item.appendChild(msg);
+                item.appendChild(meta);
+                container.appendChild(item);
+            });
+        };
+        
+        // Update user name in the welcome banner and avatar
+        window.updateUserName = function(firstName, lastName) {
+            try {
+                const fn = (firstName || '').toString().trim();
+                const ln = (lastName || '').toString().trim();
+                currentUserFirstName = fn;
+                currentUserLastName = ln;
+                const fullName = (fn + ' ' + ln).trim() || 'User';
+                
+                const avatarEl = document.querySelector('.user-menu');
+                if (avatarEl && fullName) {
+                    avatarEl.textContent = fullName.charAt(0).toUpperCase();
+                }
+                
+                // Update greeting text based on current time + new name
+                updateGreetingBanner();
+            } catch (e) {
+                console.error('Error updating user name:', e);
+            }
+        };
+        
+        function applyUserNameFromProfile(profile) {
+            if (!profile || typeof profile !== 'object') return;
+            const first = profile.first_name || profile.firstName || '';
+            const last = profile.last_name || profile.lastName || '';
+            updateUserName(first, last);
+        }
+        
+        // Fetch profile (first_name, last_name) from Python via pywebview
+        function loadUserNameFromPython() {
+            try {
+                if (!window.pywebview || !pywebview.api || !pywebview.api.get_user_profile) {
+                    return;
+                }
+                const result = pywebview.api.get_user_profile();
+                // Handle both sync and Promise-style APIs
+                if (result && typeof result.then === 'function') {
+                    result.then(applyUserNameFromProfile).catch(err => console.error('get_user_profile error:', err));
+                } else {
+                    applyUserNameFromProfile(result);
+                }
+            } catch (e) {
+                console.error('Error loading user name from Python:', e);
+            }
+        }
+        
+        // Show full user payload when clicking on user avatar
+        function showUserPayload() {
+            try {
+                if (!window.pywebview || !pywebview.api || !pywebview.api.get_user_profile) {
+                    alert('User profile API not available');
+                    return;
+                }
+                const result = pywebview.api.get_user_profile();
+                const handle = (payload) => {
+                    try {
+                        console.log('User payload:', payload);
+                        alert(JSON.stringify(payload, null, 2));
+                    } catch (e) {
+                        alert('Error displaying payload. See console for details.');
+                        console.error('Error displaying payload:', e, payload);
+                    }
+                };
+                if (result && typeof result.then === 'function') {
+                    result.then(handle).catch(err => {
+                        console.error('get_user_profile error:', err);
+                        alert('Failed to load user payload');
+                    });
+                } else {
+                    handle(result);
+                }
+            } catch (e) {
+                console.error('Error in showUserPayload:', e);
+                alert('Unexpected error while loading user payload');
+            }
+        }
+        
+        window.updateButtonStates = function(states) {
+            const btnClockIn = document.getElementById('btn-clock-in');
+            const btnClockOut = document.getElementById('btn-clock-out');
+            const btnStartBreak = document.getElementById('btn-start-break');
+            const btnEndBreak = document.getElementById('btn-end-break');
+            
+            if (!btnClockIn || !btnClockOut || !btnStartBreak || !btnEndBreak) return;
+            
+            btnClockIn.disabled = !states.clockIn;
+            btnClockOut.disabled = !states.clockOut;
+            btnStartBreak.disabled = !states.startBreak;
+            btnEndBreak.disabled = !states.endBreak;
+            
+            btnClockIn.className = states.clockIn ? 'btn btn-primary' : 'btn';
+            btnClockOut.className = states.clockOut ? 'btn btn-clock-out' : 'btn';
+            btnStartBreak.className = states.startBreak ? 'btn btn-primary' : 'btn';
+            btnEndBreak.className = states.endBreak ? 'btn btn-success' : 'btn';
+        };
+        
+        // Auto-refresh
+        let buttonRefreshInterval = null;
+        let attendanceRefreshInterval = null;
+        
+        function startAutoRefresh() {
+            if (buttonRefreshInterval) clearInterval(buttonRefreshInterval);
+            buttonRefreshInterval = setInterval(() => {
+                try {
+                    pywebview.api.refresh_button_states();
+                } catch (e) {
+                    console.error('Button refresh error:', e);
+                }
+            }, 500);
+            
+            if (attendanceRefreshInterval) clearInterval(attendanceRefreshInterval);
+            attendanceRefreshInterval = setInterval(() => {
+                try {
+                    pywebview.api.refresh_attendance();
+                } catch (e) {
+                    console.error('Auto-refresh error:', e);
+                }
+            }, 30000);
+        }
+        
+        function initializeApp() {
+            try {
+                if (pywebview && pywebview.api) {
+                    pywebview.api.initialize();
+                    startAutoRefresh();
+                    setTimeout(() => {
+                        try {
+                            pywebview.api.refresh_button_states();
+                        } catch (e) {
+                            console.error('Error refreshing button states on init:', e);
+                        }
+                    }, 500);
+                    // Also load the user name for the welcome banner
+                    setTimeout(loadUserNameFromPython, 700);
+                } else {
+                    setTimeout(initializeApp, 100);
+                }
+            } catch (e) {
+                console.error('Error initializing app:', e);
+                setTimeout(initializeApp, 100);
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+        
+        window.addEventListener('beforeunload', () => {
+            if (buttonRefreshInterval) clearInterval(buttonRefreshInterval);
+            if (attendanceRefreshInterval) clearInterval(attendanceRefreshInterval);
+        });
+    </script>
+</body>
+</html>

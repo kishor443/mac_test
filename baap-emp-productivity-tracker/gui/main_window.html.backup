@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            font-family: 'Figtree', sans-serif;
+            background: white;
+            overflow-x: hidden;
+            overflow-y: auto; /* allow scroll */
+            -ms-overflow-style: none;  /* IE/Edge */
+            scrollbar-width: none;     /* Firefox */
+        }
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        
+        .header {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E5E7EB;
+            position: relative;
+        }
+        
+        .header-left {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1F2937;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            font-size: 13px;
+            color: #374151;
+        }
+        
+        .status-text {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .clock-text {
+            font-weight: 400;
+            color: #374151;
+        }
+        
+        /* 3-dot menu button */
+        .menu-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .menu-button:hover {
+            background: #F3F4F6;
+        }
+        
+        .menu-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .menu-dot {
+            width: 4px;
+            height: 4px;
+            background: #374151;
+            border-radius: 50%;
+        }
+        
+        /* Menu dropdown */
+        .menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 180px;
+            z-index: 1000;
+            display: none;
+            margin-top: 4px;
+        }
+        
+        .menu-dropdown.show {
+            display: block;
+        }
+        
+        .menu-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            transition: background 0.2s;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-item:hover {
+            background: #F9FAFB;
+        }
+        
+        .menu-item.active {
+            background: #EFF6FF;
+            color: #2563EB;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 24px 20px;
+            max-width: 520px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        /* Page container */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .button-row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #F9FAFB;
+            color: #374151;
+            font-weight: 500;
+            font-family: 'Figtree', sans-serif;
+        }
+        
+        .btn:hover:not(:disabled) {
+            background: #F3F4F6;
+            border-color: #9CA3AF;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #F9FAFB;
+        }
+        
+        .btn-primary {
+            background: #3B82F6;
+            color: white;
+            border-color: #3B82F6;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #2563EB;
+        }
+        
+        .btn-clock-out {
+            background: #EF4444;
+            color: white;
+            border-color: #EF4444;
+        }
+        
+        .btn-clock-out:hover:not(:disabled) {
+            background: #DC2626;
+        }
+        
+        .btn-clock-out:not(:disabled) {
+            opacity: 1 !important;
+            cursor: pointer;
+            background: #EF4444;
+            color: white;
+        }
+        
+        .btn-clock-out:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #F9FAFB;
+            color: #9CA3AF;
+        }
+        
+        .btn-purple {
+            background: #9333EA;
+            color: white;
+            border-color: #9333EA;
+        }
+        
+        .btn-purple:hover:not(:disabled) {
+            background: #7E22CE;
+        }
+        
+        .btn-success {
+            background: #10B981;
+            color: white;
+            border-color: #10B981;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background: #059669;
+        }
+        
+        .btn-success:not(:disabled) {
+            opacity: 1 !important;
+            cursor: pointer;
+            background: #10B981;
+            color: white;
+        }
+        
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #F9FAFB;
+            color: #9CA3AF;
+        }
+        
+        .shift-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .shift-section label {
+            font-size: 14px;
+            color: #374151;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        
+        .shift-select {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: #374151;
+            font-family: 'Figtree', sans-serif;
+        }
+        
+        .shift-select:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
+        
+        .btn-small {
+            padding: 10px 18px;
+            font-size: 13px;
+        }
+        
+        .metrics {
+            margin-bottom: 20px;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            margin-bottom: 6px;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1F2937;
+        }
+        
+        .info-section {
+            margin-bottom: 24px;
+        }
+        
+        .info-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+            margin-bottom: 6px;
+        }
+        
+        .attendance-section {
+            margin-top: 0;
+        }
+        
+        .attendance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .attendance-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1F2937;
+        }
+        
+        .attendance-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .section-label {
+            font-size: 12px;
+            color: #6B7280;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .table-container {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: #F9FAFB;
+            padding: 10px 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 600;
+            font-size: 12px;
+            color: #374151;
+        }
+        
+        .table-row {
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            border-bottom: 1px solid #E5E7EB;
+            font-size: 12px;
+            color: #374151;
+            background: white;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-row:first-of-type {
+            background: white;
+        }
+        
+        /* Graph page styles */
+        .graph-placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6B7280;
+        }
+        
+        .graph-placeholder h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1F2937;
+        }
+        
+        .graph-placeholder p {
+            font-size: 14px;
+        }
+
+        /* Announcements */
+        .card {
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .notice-list {
+            border: 1px dashed #E5E7EB;
+            border-radius: 10px;
+            min-height: 60px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .notice-empty {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 14px;
+            padding: 12px 0;
+        }
+        .notice-item {
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 10px;
+        }
+        .notice-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .notice-title {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+        .notice-message {
+            font-size: 14px;
+            color: #4B5563;
+            margin-bottom: 4px;
+        }
+        .notice-meta {
+            font-size: 12px;
+            color: #6B7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">Productivity Tracker</div>
+        <div class="header-right">
+            <span class="status-text" id="status">Status: LOGGED OUT</span>
+            <span class="clock-text" id="clock">--:-- --</span>
+            <div style="position: relative;">
+                <button class="menu-button" onclick="toggleMenu()">
+                    <div class="menu-dots">
+                        <div class="menu-dot"></div>
+                        <div class="menu-dot"></div>
+                        <div class="menu-dot"></div>
+                    </div>
+                </button>
+                <div class="menu-dropdown" id="menuDropdown">
+                    <div class="menu-item active" onclick="switchPage('home')">Home</div>
+                    <div class="menu-item" onclick="switchPage('attendance')">Attendance</div>
+                    <div class="menu-item" onclick="switchPage('graph')">Graph</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content">
+        <!-- Home Page -->
+        <div class="page active" id="page-home">
+            <div class="button-row">
+                <button class="btn" id="btn-start-break" onclick="startBreak()">start Break</button>
+                <button class="btn" id="btn-end-break" onclick="endBreak()">End Break</button>
+                <button class="btn" id="btn-logout" onclick="logout()">Logout</button>
+            </div>
+            
+            <div class="button-row-2">
+                <button class="btn" id="btn-clock-in" onclick="clockIn()">Clock In</button>
+                <button class="btn btn-clock-out" id="btn-clock-out" onclick="clockOut()">Clock out</button>
+            </div>
+            
+            <div class="shift-section">
+                <label>Shift</label>
+                <select class="shift-select" id="shift-select" onchange="onShiftChange()">
+                    <option value="">Loading...</option>
+                </select>
+                <button class="btn btn-small" onclick="refreshShifts()">Refresh</button>
+                <button class="btn btn-small" onclick="showSummary()" style="display: none;">Summary</button>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric-label">Break Time</div>
+                <div class="metric-value" id="break-time">00:00:00</div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-text" id="active-apps">Active Apps: No recent apps</div>
+                <div class="info-text" id="idle-warning">Idle Warning: none</div>
+            </div>
+
+            <div class="card announcements">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span style="color:#F59E0B;">&#128276;</span>
+                        <span>Announcements</span>
+                    </div>
+                    <button class="btn btn-small" onclick="refreshNotices()">Refresh</button>
+                </div>
+                <div class="notice-list" id="notices-list">
+                    <div class="notice-empty">No announcements</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance Page -->
+        <div class="page" id="page-attendance">
+            <div class="attendance-section">
+                <div class="attendance-header">
+                    <div class="attendance-title">Attendance</div>
+                    <div class="attendance-buttons">
+                        <button class="btn btn-small" onclick="showSummary()">Daily Summary</button>
+                        <button class="btn btn-small btn-purple" onclick="refreshAttendance()">Refresh</button>
+                    </div>
+                </div>
+                
+                <div class="section-label">Work Periods (IST)</div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>Punch In (IST)</div>
+                        <div>Punch Out (IST)</div>
+                    </div>
+                    <div id="work-periods"></div>
+                </div>
+                
+                <div class="section-label">Breaks (IST)</div>
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>Break Start (IST)</div>
+                        <div>Break End (IST)</div>
+                    </div>
+                    <div id="breaks"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Graph Page -->
+        <div class="page" id="page-graph">
+            <div class="graph-placeholder">
+                <h2>Graph View</h2>
+                <p>Graph visualization coming soon...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Page navigation
+        let currentPage = 'home';
+        
+        function switchPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(`page-${page}`).classList.add('active');
+            
+            // Update menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Close menu
+            document.getElementById('menuDropdown').classList.remove('show');
+            
+            currentPage = page;
+            
+            // Refresh attendance data when switching to attendance page
+            if (page === 'attendance') {
+                try {
+                    pywebview.api.refresh_attendance();
+                } catch (e) {
+                    console.error('Error refreshing attendance:', e);
+                }
+            }
+        }
+        
+        function toggleMenu() {
+            const dropdown = document.getElementById('menuDropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menuButton = document.querySelector('.menu-button');
+            const dropdown = document.getElementById('menuDropdown');
+            if (!menuButton.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        
+        // Update clock every second
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = (hours % 12 || 12).toString().padStart(2, '0');
+            document.getElementById('clock').textContent = `${displayHours}:${minutes}:${seconds} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        // API functions with validation
+        function startBreak() {
+            const btn = document.getElementById('btn-start-break');
+            if (btn.disabled) {
+                return;
+            }
+            pywebview.api.start_break();
+        }
+        
+        function endBreak() {
+            const btn = document.getElementById('btn-end-break');
+            if (btn.disabled) {
+                return;
+            }
+            pywebview.api.end_break();
+        }
+        
+        function logout() {
+            pywebview.api.logout();
+        }
+        
+        function clockIn() {
+            const btn = document.getElementById('btn-clock-in');
+            if (btn.disabled) {
+                return;
+            }
+            pywebview.api.clock_in();
+        }
+        
+        function clockOut() {
+            const btn = document.getElementById('btn-clock-out');
+            if (btn.disabled) {
+                return;
+            }
+            pywebview.api.clock_out();
+        }
+        
+        function refreshShifts() {
+            pywebview.api.refresh_shifts();
+        }
+        
+        function showSummary() {
+            pywebview.api.show_summary();
+        }
+        
+        function refreshAttendance() {
+            pywebview.api.refresh_attendance();
+        }
+        
+        function refreshNotices() {
+            try {
+                pywebview.api.refresh_notices();
+            } catch (e) {
+                console.error('Error refreshing notices:', e);
+            }
+        }
+        
+        function onShiftChange() {
+            const select = document.getElementById('shift-select');
+            pywebview.api.set_shift(select.value);
+        }
+        
+        // Update UI from Python
+        window.updateStatus = function(status) {
+            document.getElementById('status').textContent = status;
+        };
+        
+        window.updateBreakTime = function(time) {
+            document.getElementById('break-time').textContent = time;
+        };
+        
+        window.updateActiveApps = function(apps) {
+            document.getElementById('active-apps').textContent = `Active Apps: ${apps}`;
+        };
+        
+        window.updateIdleWarning = function(warning) {
+            document.getElementById('idle-warning').textContent = `Idle Warning: ${warning}`;
+        };
+        
+        window.updateShifts = function(shifts, selected) {
+            const select = document.getElementById('shift-select');
+            select.innerHTML = '';
+            if (shifts.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Loading...';
+                select.appendChild(option);
+            } else {
+                shifts.forEach(shift => {
+                    const option = document.createElement('option');
+                    option.value = shift.id;
+                    option.textContent = shift.name;
+                    if (shift.id === selected) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            }
+        };
+        
+        window.updateWorkPeriods = function(periods) {
+            const container = document.getElementById('work-periods');
+            container.innerHTML = '';
+            if (periods.length === 0) {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                row.innerHTML = '<div style="color: #9CA3AF;">—</div><div style="color: #9CA3AF;">—</div>';
+                container.appendChild(row);
+            } else {
+                periods.forEach(period => {
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    row.innerHTML = `<div>${period.in || '—'}</div><div>${period.out || '—'}</div>`;
+                    container.appendChild(row);
+                });
+            }
+        };
+        
+        window.updateBreaks = function(breaks) {
+            const container = document.getElementById('breaks');
+            container.innerHTML = '';
+            if (breaks.length === 0) {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                row.innerHTML = '<div style="color: #9CA3AF;">—</div><div style="color: #9CA3AF;">—</div>';
+                container.appendChild(row);
+            } else {
+                breaks.forEach(br => {
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    row.innerHTML = `<div>${br.start || '—'}</div><div>${br.end || '—'}</div>`;
+                    container.appendChild(row);
+                });
+            }
+        };
+        
+        window.updateNotices = function(notices) {
+            const container = document.getElementById('notices-list');
+            container.innerHTML = '';
+            if (!notices || notices.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'notice-empty';
+                empty.textContent = 'No announcements';
+                container.appendChild(empty);
+                return;
+            }
+            notices.forEach(n => {
+                const item = document.createElement('div');
+                item.className = 'notice-item';
+                const title = document.createElement('div');
+                title.className = 'notice-title';
+                title.textContent = n.title || 'Announcement';
+                const msg = document.createElement('div');
+                msg.className = 'notice-message';
+                msg.textContent = n.message || '';
+                const meta = document.createElement('div');
+                meta.className = 'notice-meta';
+                meta.textContent = n.valid_till ? `Valid till: ${n.valid_till}` : (n.status ? `Status: ${n.status}` : '');
+                item.appendChild(title);
+                item.appendChild(msg);
+                item.appendChild(meta);
+                container.appendChild(item);
+            });
+        };
+        
+        window.updateButtonStates = function(states) {
+            console.log('updateButtonStates called with:', states);
+            
+            const btnClockIn = document.getElementById('btn-clock-in');
+            const btnClockOut = document.getElementById('btn-clock-out');
+            const btnStartBreak = document.getElementById('btn-start-break');
+            const btnEndBreak = document.getElementById('btn-end-break');
+            
+            if (!btnClockIn || !btnClockOut || !btnStartBreak || !btnEndBreak) {
+                console.error('Button elements not found!', {
+                    btnClockIn: !!btnClockIn,
+                    btnClockOut: !!btnClockOut,
+                    btnStartBreak: !!btnStartBreak,
+                    btnEndBreak: !!btnEndBreak
+                });
+                return;
+            }
+            
+            // Set disabled states
+            btnClockIn.disabled = !states.clockIn;
+            btnClockOut.disabled = !states.clockOut;
+            btnStartBreak.disabled = !states.startBreak;
+            btnEndBreak.disabled = !states.endBreak;
+            
+            console.log('Button disabled states set:', {
+                clockIn: btnClockIn.disabled,
+                clockOut: btnClockOut.disabled,
+                startBreak: btnStartBreak.disabled,
+                endBreak: btnEndBreak.disabled
+            });
+            
+            // Reset all button classes
+            btnClockIn.className = 'btn';
+            btnClockOut.className = 'btn btn-clock-out';
+            btnStartBreak.className = 'btn';
+            btnEndBreak.className = 'btn';
+            
+            // Apply styling based on enabled state
+            // Clock In: Only enabled when logged out
+            if (states.clockIn && !states.clockOut) {
+                btnClockIn.className = 'btn btn-primary';
+            }
+            
+            // Clock Out: Only enabled when clocked in or on break
+            // Make it clearly visible and enabled when clocked in (same as break buttons)
+            if (states.clockOut) {
+                btnClockOut.className = 'btn btn-clock-out';
+                btnClockOut.disabled = false;
+                // Ensure it's fully visible and clickable - same as break buttons
+                btnClockOut.style.display = 'block';
+                btnClockOut.style.visibility = 'visible';
+                btnClockOut.style.opacity = '1';
+                btnClockOut.style.cursor = 'pointer';
+                btnClockOut.style.background = '#EF4444';
+                btnClockOut.style.color = 'white';
+            } else {
+                btnClockOut.disabled = true;
+                btnClockOut.style.opacity = '0.5';
+                btnClockOut.style.cursor = 'not-allowed';
+            }
+            
+            // Clock In: When disabled (clocked in), make it clearly disabled
+            if (states.clockIn) {
+                btnClockIn.disabled = false;
+                btnClockIn.style.opacity = '1';
+                btnClockIn.style.cursor = 'pointer';
+            } else {
+                btnClockIn.disabled = true;
+                btnClockIn.style.opacity = '0.5';
+                btnClockIn.style.cursor = 'not-allowed';
+            }
+            
+            // Start Break: Blue button when enabled (like old app)
+            // Only enabled when clocked in (not on break)
+            if (states.startBreak && !states.clockIn) {
+                btnStartBreak.className = 'btn btn-primary';  // Blue button when enabled
+                btnStartBreak.style.opacity = '1';
+                btnStartBreak.style.cursor = 'pointer';
+            } else {
+                btnStartBreak.className = 'btn';  // White/grey button when disabled
+                btnStartBreak.style.opacity = '0.5';
+                btnStartBreak.style.cursor = 'not-allowed';
+            }
+            
+            // End Break: Green button when enabled, grey when disabled
+            if (states.endBreak) {
+                btnEndBreak.className = 'btn btn-success';  // Green button when enabled
+                btnEndBreak.style.opacity = '1';
+                btnEndBreak.style.cursor = 'pointer';
+            } else {
+                btnEndBreak.className = 'btn';  // Grey button when disabled
+                btnEndBreak.style.opacity = '0.5';
+                btnEndBreak.style.cursor = 'not-allowed';
+            }
+        };
+        
+        // Auto-refresh functionality
+        let autoRefreshInterval = null;
+        let attendanceRefreshInterval = null;
+        let buttonRefreshInterval = null;
+        
+        function startAutoRefresh() {
+            if (buttonRefreshInterval) {
+                clearInterval(buttonRefreshInterval);
+            }
+            buttonRefreshInterval = setInterval(() => {
+                try {
+                    pywebview.api.refresh_button_states();
+                } catch (e) {
+                    console.error('Button refresh error:', e);
+                }
+            }, 500); // Fast refresh every 0.5 seconds
+            
+            if (attendanceRefreshInterval) {
+                clearInterval(attendanceRefreshInterval);
+            }
+            attendanceRefreshInterval = setInterval(() => {
+                try {
+                    pywebview.api.refresh_attendance();
+                } catch (e) {
+                    console.error('Auto-refresh error:', e);
+                }
+            }, 30000);
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            autoRefreshInterval = setInterval(() => {
+                try {
+                    pywebview.api.refresh_shifts();
+                } catch (e) {
+                    console.error('Shift refresh error:', e);
+                }
+            }, 30000); // Auto-refresh shifts every 30 seconds
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            if (attendanceRefreshInterval) {
+                clearInterval(attendanceRefreshInterval);
+                attendanceRefreshInterval = null;
+            }
+            if (buttonRefreshInterval) {
+                clearInterval(buttonRefreshInterval);
+                buttonRefreshInterval = null;
+            }
+        }
+        
+        // Initialize immediately when page loads
+        function initializeApp() {
+            console.log('Initializing app...');
+            try {
+                if (pywebview && pywebview.api) {
+                    pywebview.api.initialize();
+                    // Start auto-refresh immediately
+                    startAutoRefresh();
+                    // Force button state refresh after a short delay
+                    setTimeout(() => {
+                        try {
+                            pywebview.api.refresh_button_states();
+                        } catch (e) {
+                            console.error('Error refreshing button states on init:', e);
+                        }
+                    }, 500);
+                } else {
+                    console.error('pywebview API not available');
+                    // Retry after a short delay
+                    setTimeout(initializeApp, 100);
+                }
+            } catch (e) {
+                console.error('Error initializing app:', e);
+                // Retry after a short delay
+                setTimeout(initializeApp, 100);
+            }
+        }
+        
+        // Call initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            // DOM already loaded, initialize immediately
+            initializeApp();
+        }
+        
+        // Auto-refresh is now started in initializeApp()
+        
+        window.addEventListener('beforeunload', () => {
+            stopAutoRefresh();
+        });
+    </script>
+</body>
+</html>
